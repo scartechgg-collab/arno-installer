@@ -6,17 +6,27 @@
 #
 #  Usage:
 #    bash <(curl -s https://raw.githubusercontent.com/scartechgg-collab/arno-installer/main/install.sh)
+#    OR
+#    curl -s ... | bash
 # ============================================================================
 
 set -Eeuo pipefail
 IFS=$'\n\t'
 
 # ----------------------------------------------------------------------------
+# FIX FOR CURL | BASH
+# When piping curl to bash, stdin is the script itself, so 'read' fails.
+# This redirects stdin to the terminal (/dev/tty) so keyboard inputs work.
+# ----------------------------------------------------------------------------
+if [[ ! -t 0 ]]; then
+    exec 0</dev/tty
+fi
+
+# ----------------------------------------------------------------------------
 # Global Constants
 # ----------------------------------------------------------------------------
 export ARNO_VERSION="1.0.0"
 
-# FIXED: Changed to your repository
 export ARNO_REPO="scartechgg-collab/arno-installer"
 export ARNO_BRANCH="main"
 
