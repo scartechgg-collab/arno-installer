@@ -5,7 +5,7 @@
 #  Powered by Arnoplays
 #
 #  Usage:
-#    bash <(curl -s https://raw.githubusercontent.com/Arnoplays/arno-installer/main/install.sh)
+#    bash <(curl -s https://raw.githubusercontent.com/scartechgg-collab/arno-installer/main/install.sh)
 # ============================================================================
 
 set -Eeuo pipefail
@@ -15,8 +15,11 @@ IFS=$'\n\t'
 # Global Constants
 # ----------------------------------------------------------------------------
 export ARNO_VERSION="1.0.0"
-export ARNO_REPO="Arnoplays/arno-installer"
+
+# FIXED: Changed to your repository
+export ARNO_REPO="scartechgg-collab/arno-installer"
 export ARNO_BRANCH="main"
+
 export ARNO_BASE_URL="https://raw.githubusercontent.com/${ARNO_REPO}/${ARNO_BRANCH}"
 export ARNO_TEMP_DIR
 export ARNO_LOG_FILE="/var/log/arno-installer.log"
@@ -28,8 +31,6 @@ export ARNO_CONFIG_DIR="${ARNO_PANEL_PATH}/config"
 # ----------------------------------------------------------------------------
 arno_detect_mode() {
     local script_source
-    # BASH_SOURCE contains the script path; if sourced via process substitution,
-    # the path will be something like /dev/fd/63
     script_source="${BASH_SOURCE[0]:-$0}"
     if [[ "$script_source" == /dev/fd/* ]] || [[ ! -f "$script_source" ]]; then
         export ARNO_MODE="remote"
