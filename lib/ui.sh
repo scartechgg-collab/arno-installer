@@ -44,44 +44,6 @@ ui_separator() {
 }
 
 # ----------------------------------------------------------------------------
-# Box drawing
-# ----------------------------------------------------------------------------
-ui_box() {
-    # Prints text inside a Unicode box
-    local color="${1:-$RED}"
-    shift
-    local lines=("$@")
-    local max_len=0
-    local line
-    for line in "${lines[@]}"; do
-        # Strip ANSI codes for length calculation
-        local stripped
-        stripped=$(printf '%s' "$line" | sed 's/\x1b\[[0-9;]*m//g')
-        if (( ${#stripped} > max_len )); then
-            max_len=${#stripped}
-        fi
-    done
-    local inner=$((max_len + 4))
-    local top="╔"; local bottom="╚"; local mid="╠"
-    local i
-    for (( i=0; i<inner; i++ )); do
-        top+='═'; bottom+='═'; mid+='═'
-    done
-    top+='╗'; bottom+='╝'; mid+='╣'
-
-    printf '%s\n' "$(c "$color" "$top")"
-    for line in "${lines[@]}"; do
-        local stripped
-        stripped=$(printf '%s' "$line" | sed 's/\x1b\[[0-9;]*m//g')
-        local pad=$(( max_len - ${#stripped} ))
-        local pad_str=""
-        for (( i=0; i<pad; i++ )); do pad_str+=' '; done
-        printf '%s %s %s %s\n' "$(c "$color" "║")" "$line" "$pad_str" "$(c "$color" "║")"
-    done
-    printf '%s\n' "$(c "$color" "$bottom")"
-}
-
-# ----------------------------------------------------------------------------
 # Status indicators
 # ----------------------------------------------------------------------------
 ui_print_success() {
@@ -123,10 +85,23 @@ ui_check_terminal() {
 }
 
 # ----------------------------------------------------------------------------
-# Splash screen
+# Splash screen (Added the red box at the starting)
 # ----------------------------------------------------------------------------
 ui_show_splash() {
     clear
+    local cols
+    cols=$(ui_get_cols)
+    local box_width=46
+    local padding=$(( (cols - box_width) / 2 ))
+    (( padding < 0 )) && padding=0
+    
+    local pad_str=""
+    local i
+    for (( i=0; i<padding; i++ )); do pad_str+=' '; done
+
+    # Splash box top
+    printf '\n%s%s\n' "$pad_str" "$(c "$RED_BOLD" "╔══════════════════════════════════════════════╗")"
+    
     local logo=(
         '    ██████╗ ██████╗ ███╗   ██╗ ██████╗ '
         '    ██╔══██╗██╔══██╗████╗  ██║██╔═══██╗'
@@ -135,12 +110,16 @@ ui_show_splash() {
         '    ██║  ██║██║  ██║██║ ╚████║╚██████╔╝'
         '    ╚═╝  ╚═╝╚═╝  ╚═╝╚═╝  ╚═══╝ ╚═════╝ '
     )
-    echo
+    
     local line
     for line in "${logo[@]}"; do
-        arno_fade_in "$line" 0.08
+        printf '%s%s%s%s%s\n' "$pad_str" "$(c "$RED_BOLD" "║")" "  " "$(c "$RED" "$line")" "$(c "$RED_BOLD" "  ║")"
+        sleep 0.08
     done
-    echo
+
+    # Splash box bottom
+    printf '%s%s\n\n' "$pad_str" "$(c "$RED_BOLD" "╚══════════════════════════════════════════════╝")"
+    
     ui_center_color "$RED_BOLD" "ARNO INSTALLER"
     ui_center_color "$GRAY" "Powered by Arnoplays"
     ui_center_color "$GRAY_DIM" "Version ${ARNO_VERSION}"
@@ -263,20 +242,30 @@ ui_run_startup_checks() {
 }
 
 # ----------------------------------------------------------------------------
-# Main menu
+# Main menu (Perfectly Aligned Red Box)
 # ----------------------------------------------------------------------------
 ui_show_main_menu() {
     clear
     echo
-    ui_center_color "$RED_BOLD" "╔════════════════════════════════════╗"
-    ui_center_color "$RED_BOLD" "║          ARNO INSTALLER            ║"
-    ui_center_color "$RED_BOLD" "╠════════════════════════════════════╣"
-    ui_center_color "$RED_BOLD" "║                                    ║"
-    ui_center_color "$RED_BOLD" "║  [1] Panel Installation            ║"
-    ui_center_color "$RED_BOLD" "║  [2] Wings Installation             ║"
-    ui_center_color "$RED_BOLD" "║  [3] Exit                          ║"
-    ui_center_color "$RED_BOLD" "║                                    ║"
-    ui_center_color "$RED_BOLD" "╚════════════════════════════════════╝"
+    local cols
+    cols=$(ui_get_cols)
+    local box_width=42
+    local padding=$(( (cols - box_width) / 2 ))
+    (( padding < 0 )) && padding=0
+    
+    local pad_str=""
+    local i
+    for (( i=0; i<padding; i++ )); do pad_str+=' '; done
+
+    printf '%s%s\n' "$pad_str" "$(c "$RED_BOLD" "╔══════════════════════════════════════════╗")"
+    printf '%s%s%s%s\n' "$pad_str" "$(c "$RED_BOLD" "║")" "$(c "$RED_BOLD" "            ARNO INSTALLER              ")" "$(c "$RED_BOLD" "║")"
+    printf '%s%s\n' "$pad_str" "$(c "$RED_BOLD" "╠══════════════════════════════════════════╣")"
+    printf '%s%s%s%s\n' "$pad_str" "$(c "$RED_BOLD" "║")" "$(c "$GRAY" "                                          ")" "$(c "$RED_BOLD" "║")"
+    printf '%s%s%s%s\n' "$pad_str" "$(c "$RED_BOLD" "║")" "$(c "$WHITE_BOLD" "  [1] Panel Installation                 ")" "$(c "$RED_BOLD" "║")"
+    printf '%s%s%s%s\n' "$pad_str" "$(c "$RED_BOLD" "║")" "$(c "$WHITE_BOLD" "  [2] Wings Installation                  ")" "$(c "$RED_BOLD" "║")"
+    printf '%s%s%s%s\n' "$pad_str" "$(c "$RED_BOLD" "║")" "$(c "$WHITE_BOLD" "  [3] Exit                                ")" "$(c "$RED_BOLD" "║")"
+    printf '%s%s%s%s\n' "$pad_str" "$(c "$RED_BOLD" "║")" "$(c "$GRAY" "                                          ")" "$(c "$RED_BOLD" "║")"
+    printf '%s%s\n' "$pad_str" "$(c "$RED_BOLD" "╚══════════════════════════════════════════╝")"
     echo
     ui_center_color "$GRAY" "Powered by Arnoplays • v${ARNO_VERSION}"
     echo
