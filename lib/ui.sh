@@ -11,38 +11,6 @@ ui_get_rows() {
     tput lines 2>/dev/null || echo 24
 }
 
-ui_center() {
-    local text="$1"
-    local cols
-    cols=$(ui_get_cols)
-    local text_len
-    text_len=${#text}
-    local padding=$(( (cols - text_len) / 2 ))
-    (( padding < 0 )) && padding=0
-    printf '%*s%s\n' "$padding" "" "$text"
-}
-
-ui_center_color() {
-    local color="$1"; shift
-    local text="$*"
-    local cols
-    cols=$(ui_get_cols)
-    local padding=$(( (cols - ${#text}) / 2 ))
-    (( padding < 0 )) && padding=0
-    printf '%*s' "$padding" ""
-    c "$color" "$text"
-    printf '\n'
-}
-
-ui_separator() {
-    local cols
-    cols=$(ui_get_cols)
-    local line=""
-    local i
-    for (( i=0; i<cols; i++ )); do line+='─'; done
-    printf '%s\n' "$(c "$GRAY_DIM" "$line")"
-}
-
 # ----------------------------------------------------------------------------
 # Status indicators
 # ----------------------------------------------------------------------------
@@ -85,22 +53,11 @@ ui_check_terminal() {
 }
 
 # ----------------------------------------------------------------------------
-# Splash screen (Added the red box at the starting)
+# Splash screen (Left-Aligned & Instant)
 # ----------------------------------------------------------------------------
 ui_show_splash() {
     clear
-    local cols
-    cols=$(ui_get_cols)
-    local box_width=46
-    local padding=$(( (cols - box_width) / 2 ))
-    (( padding < 0 )) && padding=0
-    
-    local pad_str=""
-    local i
-    for (( i=0; i<padding; i++ )); do pad_str+=' '; done
-
-    # Splash box top
-    printf '\n%s%s\n' "$pad_str" "$(c "$RED_BOLD" "╔══════════════════════════════════════════════╗")"
+    printf '\n%s\n' "$(c "$RED_BOLD" "╔══════════════════════════════════════════════╗")"
     
     local logo=(
         '    ██████╗ ██████╗ ███╗   ██╗ ██████╗ '
@@ -113,25 +70,21 @@ ui_show_splash() {
     
     local line
     for line in "${logo[@]}"; do
-        printf '%s%s%s%s%s\n' "$pad_str" "$(c "$RED_BOLD" "║")" "  " "$(c "$RED" "$line")" "$(c "$RED_BOLD" "  ║")"
-        sleep 0.08
+        printf '%s%s%s%s%s\n' "$(c "$RED_BOLD" "║")" "  " "$(c "$RED" "$line")" "$(c "$RED_BOLD" "  ║")"
     done
 
-    # Splash box bottom
-    printf '%s%s\n\n' "$pad_str" "$(c "$RED_BOLD" "╚══════════════════════════════════════════════╝")"
+    printf '%s\n\n' "$(c "$RED_BOLD" "╚══════════════════════════════════════════════╝")"
     
-    ui_center_color "$RED_BOLD" "ARNO INSTALLER"
-    ui_center_color "$GRAY" "Powered by Arnoplays"
-    ui_center_color "$GRAY_DIM" "Version ${ARNO_VERSION}"
-    echo
-    sleep 0.4
+    printf '%s\n' "$(c "$RED_BOLD" "ARNO INSTALLER")"
+    printf '%s\n' "$(c "$GRAY" "Powered by Arnoplays")"
+    printf '%s\n\n' "$(c "$GRAY_DIM" "Version ${ARNO_VERSION}")"
 }
 
 # ----------------------------------------------------------------------------
-# Startup checks screen
+# Startup checks screen (Fast & Left-Aligned)
 # ----------------------------------------------------------------------------
 ui_run_startup_checks() {
-    ui_center_color "$WHITE_BOLD" "Loading Modules..."
+    printf '%s\n' "$(c "$WHITE_BOLD" "Loading Modules...")"
     echo
     local modules=(
         "colors.sh" "animations.sh" "utilities.sh" "ui.sh"
@@ -141,12 +94,11 @@ ui_run_startup_checks() {
     local i
     for (( i=0; i<${#modules[@]}; i++ )); do
         arno_progress_bar $((i+1)) "${#modules[@]}" "${modules[$i]}"
-        sleep 0.08
     done
     echo
     echo
 
-    ui_center_color "$WHITE_BOLD" "Running System Checks..."
+    printf '%s\n' "$(c "$WHITE_BOLD" "Running System Checks...")"
     echo
 
     local checks=()
@@ -212,7 +164,6 @@ ui_run_startup_checks() {
 
     for c in "${checks[@]}"; do
         printf '  %s\n' "$c"
-        sleep 0.1
     done
 
     echo
@@ -236,38 +187,26 @@ ui_run_startup_checks() {
         exit 1
     fi
 
-    ui_center_color "$GREEN" "All checks passed"
-    echo
-    sleep 0.5
+    printf '%s\n\n' "$(c "$GREEN" "All checks passed")"
 }
 
 # ----------------------------------------------------------------------------
-# Main menu (Perfectly Aligned Red Box)
+# Main menu (Left-Aligned Red Box)
 # ----------------------------------------------------------------------------
 ui_show_main_menu() {
     clear
     echo
-    local cols
-    cols=$(ui_get_cols)
-    local box_width=42
-    local padding=$(( (cols - box_width) / 2 ))
-    (( padding < 0 )) && padding=0
-    
-    local pad_str=""
-    local i
-    for (( i=0; i<padding; i++ )); do pad_str+=' '; done
-
-    printf '%s%s\n' "$pad_str" "$(c "$RED_BOLD" "╔══════════════════════════════════════════╗")"
-    printf '%s%s%s%s\n' "$pad_str" "$(c "$RED_BOLD" "║")" "$(c "$RED_BOLD" "            ARNO INSTALLER              ")" "$(c "$RED_BOLD" "║")"
-    printf '%s%s\n' "$pad_str" "$(c "$RED_BOLD" "╠══════════════════════════════════════════╣")"
-    printf '%s%s%s%s\n' "$pad_str" "$(c "$RED_BOLD" "║")" "$(c "$GRAY" "                                          ")" "$(c "$RED_BOLD" "║")"
-    printf '%s%s%s%s\n' "$pad_str" "$(c "$RED_BOLD" "║")" "$(c "$WHITE_BOLD" "  [1] Panel Installation                 ")" "$(c "$RED_BOLD" "║")"
-    printf '%s%s%s%s\n' "$pad_str" "$(c "$RED_BOLD" "║")" "$(c "$WHITE_BOLD" "  [2] Wings Installation                  ")" "$(c "$RED_BOLD" "║")"
-    printf '%s%s%s%s\n' "$pad_str" "$(c "$RED_BOLD" "║")" "$(c "$WHITE_BOLD" "  [3] Exit                                ")" "$(c "$RED_BOLD" "║")"
-    printf '%s%s%s%s\n' "$pad_str" "$(c "$RED_BOLD" "║")" "$(c "$GRAY" "                                          ")" "$(c "$RED_BOLD" "║")"
-    printf '%s%s\n' "$pad_str" "$(c "$RED_BOLD" "╚══════════════════════════════════════════╝")"
+    printf '%s\n' "$(c "$RED_BOLD" "╔══════════════════════════════════════════╗")"
+    printf '%s%s%s\n' "$(c "$RED_BOLD" "║")" "$(c "$RED_BOLD" "            ARNO INSTALLER              ")" "$(c "$RED_BOLD" "║")"
+    printf '%s\n' "$(c "$RED_BOLD" "╠══════════════════════════════════════════╣")"
+    printf '%s%s%s\n' "$(c "$RED_BOLD" "║")" "$(c "$GRAY" "                                          ")" "$(c "$RED_BOLD" "║")"
+    printf '%s%s%s\n' "$(c "$RED_BOLD" "║")" "$(c "$WHITE_BOLD" "  [1] Panel Installation                 ")" "$(c "$RED_BOLD" "║")"
+    printf '%s%s%s\n' "$(c "$RED_BOLD" "║")" "$(c "$WHITE_BOLD" "  [2] Wings Installation                  ")" "$(c "$RED_BOLD" "║")"
+    printf '%s%s%s\n' "$(c "$RED_BOLD" "║")" "$(c "$WHITE_BOLD" "  [3] Exit                                ")" "$(c "$RED_BOLD" "║")"
+    printf '%s%s%s\n' "$(c "$RED_BOLD" "║")" "$(c "$GRAY" "                                          ")" "$(c "$RED_BOLD" "║")"
+    printf '%s\n' "$(c "$RED_BOLD" "╚══════════════════════════════════════════╝")"
     echo
-    ui_center_color "$GRAY" "Powered by Arnoplays • v${ARNO_VERSION}"
+    printf '%s\n' "$(c "$GRAY" "Powered by Arnoplays • v${ARNO_VERSION}")"
     echo
 }
 
@@ -349,12 +288,12 @@ ui_success_box() {
 }
 
 # ----------------------------------------------------------------------------
-# Exit screen
+# Exit screen (Left-Aligned)
 # ----------------------------------------------------------------------------
 ui_show_exit_screen() {
     echo
-    ui_center_color "$RED_BOLD" "Thank you for using ARNO Installer"
-    ui_center_color "$GRAY" "Powered by Arnoplays"
+    printf '%s\n' "$(c "$RED_BOLD" "Thank you for using ARNO Installer")"
+    printf '%s\n' "$(c "$GRAY" "Powered by Arnoplays")"
     echo
 }
 
